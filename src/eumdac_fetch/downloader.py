@@ -50,6 +50,7 @@ def _decode_entry_key(key: str) -> tuple[str, str | None]:
         return product_id, entry_name
     return key, None
 
+
 # Exception types that are considered transient and worth retrying.
 # requests.exceptions.RequestException covers HTTP-level errors raised by
 # the eumdac library (which uses requests internally).
@@ -112,11 +113,9 @@ class DownloadService:
                     logger.warning("Could not list entries for %s, skipping", product_id)
                     continue
                 matching = [
-                    e for e in all_entries
-                    if any(
-                        fnmatch.fnmatch(e.split("/")[-1], pat) or fnmatch.fnmatch(e, pat)
-                        for pat in self.entries
-                    )
+                    e
+                    for e in all_entries
+                    if any(fnmatch.fnmatch(e.split("/")[-1], pat) or fnmatch.fnmatch(e, pat) for pat in self.entries)
                 ]
                 if not matching:
                     logger.warning("No entries matched patterns %s for %s", self.entries, product_id)
@@ -128,12 +127,14 @@ class DownloadService:
                         logger.info("Skipping already verified/processed entry: %s", key)
                         continue
                     if not existing:
-                        self.state_db.upsert(ProductRecord(
-                            product_id=key,
-                            job_name=job_name,
-                            collection=collection,
-                            size_kb=0,  # Per-entry size not available from metadata
-                        ))
+                        self.state_db.upsert(
+                            ProductRecord(
+                                product_id=key,
+                                job_name=job_name,
+                                collection=collection,
+                                size_kb=0,  # Per-entry size not available from metadata
+                            )
+                        )
             else:
                 # Whole-product mode: current behaviour
                 existing = self.state_db.get(product_id, job_name)
@@ -146,12 +147,14 @@ class DownloadService:
                         size_kb = product.size
                     except Exception:
                         size_kb = 0
-                    self.state_db.upsert(ProductRecord(
-                        product_id=product_id,
-                        job_name=job_name,
-                        collection=collection,
-                        size_kb=size_kb,
-                    ))
+                    self.state_db.upsert(
+                        ProductRecord(
+                            product_id=product_id,
+                            job_name=job_name,
+                            collection=collection,
+                            size_kb=size_kb,
+                        )
+                    )
 
         # Get items to download
         to_download = self.state_db.get_resumable(job_name)
@@ -200,9 +203,7 @@ class DownloadService:
                     logger.warning("Product %s not found in search results, skipping", actual_product_id)
                     continue
                 tasks.append(
-                    self._download_one(
-                        semaphore, product, entry_name, record, progress, overall_progress, overall_task
-                    )
+                    self._download_one(semaphore, product, entry_name, record, progress, overall_progress, overall_task)
                 )
 
             await asyncio.gather(*tasks)
@@ -244,8 +245,7 @@ class DownloadService:
                     download_path = self.download_dir / filename
                     downloaded = await asyncio.wait_for(
                         asyncio.to_thread(
-                            self._download_blocking, product, entry_name,
-                            download_path, record, progress, task_id
+                            self._download_blocking, product, entry_name, download_path, record, progress, task_id
                         ),
                         timeout=self.timeout,
                     )
@@ -396,10 +396,7 @@ class DownloadService:
 
         computed = md5_hash.hexdigest()
         if computed != expected_md5:
-            logger.error(
-                "MD5 mismatch for %s: expected %s, got %s",
-                download_path.name, expected_md5, computed
-            )
+            logger.error("MD5 mismatch for %s: expected %s, got %s", download_path.name, expected_md5, computed)
             return False
 
         logger.info("MD5 verified: %s", download_path.name)

@@ -14,6 +14,7 @@ from eumdac_fetch.remote import TokenRefreshingHTTPFileSystem
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _make_token(value: str = "test-token"):
     token = mock.MagicMock()
     type(token).access_token = mock.PropertyMock(return_value=value)
@@ -22,6 +23,7 @@ def _make_token(value: str = "test-token"):
 
 def _make_fs(token):
     """Build a TokenRefreshingHTTPFileSystem with the parent __init__ stubbed."""
+
     def _stub(self, *args, **kwargs):
         self.kwargs = kwargs
 
@@ -34,6 +36,7 @@ def _make_fs(token):
 # ---------------------------------------------------------------------------
 # RemoteData
 # ---------------------------------------------------------------------------
+
 
 class TestRemoteData:
     def test_init_creates_fs_from_token(self):
@@ -105,6 +108,7 @@ class TestRemoteData:
 # ---------------------------------------------------------------------------
 # RemoteDataset
 # ---------------------------------------------------------------------------
+
 
 class TestRemoteDataset:
     _entries = {

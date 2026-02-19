@@ -11,6 +11,7 @@ from eumdac_fetch.env import DEFAULT_VALIDITY, ENV, _Env, _load_credentials, _pa
 # _parse_dotenv
 # ---------------------------------------------------------------------------
 
+
 class TestParseDotenv:
     def test_simple_key_value(self, tmp_path):
         f = tmp_path / ".env"
@@ -54,6 +55,7 @@ class TestParseDotenv:
 # _load_credentials
 # ---------------------------------------------------------------------------
 
+
 class TestLoadCredentials:
     def test_reads_from_env_vars(self, monkeypatch):
         monkeypatch.setenv("EUMDAC_KEY", "env-key")
@@ -82,9 +84,7 @@ class TestLoadCredentials:
         assert validity == DEFAULT_VALIDITY
 
     def test_reads_validity_from_dotenv_file(self, tmp_path, monkeypatch):
-        (tmp_path / ".env").write_text(
-            "EUMDAC_KEY=k\nEUMDAC_SECRET=s\nEUMDAC_TOKEN_VALIDITY=7200\n"
-        )
+        (tmp_path / ".env").write_text("EUMDAC_KEY=k\nEUMDAC_SECRET=s\nEUMDAC_TOKEN_VALIDITY=7200\n")
         monkeypatch.chdir(tmp_path)
         monkeypatch.delenv("EUMDAC_KEY", raising=False)
         monkeypatch.delenv("EUMDAC_SECRET", raising=False)
@@ -184,6 +184,7 @@ class TestLoadCredentials:
 # ---------------------------------------------------------------------------
 # _Env singleton behaviour
 # ---------------------------------------------------------------------------
+
 
 class TestEnv:
     def test_env_has_key_secret_validity_attributes(self):

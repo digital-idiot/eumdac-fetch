@@ -13,6 +13,7 @@ from eumdac_fetch.auth import create_token, get_token
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _reset_singleton():
     """Reset the module-level token singleton between tests."""
     auth_module._token = None
@@ -21,6 +22,7 @@ def _reset_singleton():
 # ---------------------------------------------------------------------------
 # create_token
 # ---------------------------------------------------------------------------
+
 
 class TestCreateToken:
     def test_missing_key_raises(self):
@@ -97,6 +99,7 @@ class TestCreateToken:
 # ---------------------------------------------------------------------------
 # get_token — singleton behaviour
 # ---------------------------------------------------------------------------
+
 
 class TestGetToken:
     def setup_method(self):

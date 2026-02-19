@@ -38,6 +38,7 @@ from eumdac_fetch.remote import TokenRefreshingHTTPFileSystem
 # RemoteData — single-URL context manager
 # ---------------------------------------------------------------------------
 
+
 class RemoteData:
     """Context manager that opens a single authenticated remote file.
 
@@ -112,6 +113,7 @@ class RemoteData:
 # RemoteDataset — a product's worth of entries
 # ---------------------------------------------------------------------------
 
+
 class RemoteDataset:
     """A collection of :class:`RemoteData` entries sharing one authenticated session.
 
@@ -153,10 +155,7 @@ class RemoteDataset:
         if token_manager is None:
             token_manager = get_token()
         shared_fs = TokenRefreshingHTTPFileSystem(token_obj=token_manager, **kwargs)
-        self._entries: dict[str, RemoteData] = {
-            name: RemoteData(url, fs=shared_fs)
-            for name, url in entries.items()
-        }
+        self._entries: dict[str, RemoteData] = {name: RemoteData(url, fs=shared_fs) for name, url in entries.items()}
 
     # ------------------------------------------------------------------
     # Mapping-like interface

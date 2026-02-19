@@ -16,5 +16,5 @@ __all__ = [
     "RemoteDataset",
     "create_token",
     "get_token",
-    "__version__"
+    "__version__",
 ]

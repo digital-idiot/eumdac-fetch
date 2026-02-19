@@ -155,9 +155,7 @@ class StateDB:
         # noinspection SqlNoDataSourceInspection,SqlDialectInspection
         rows = self._conn.execute(
             "SELECT * FROM products WHERE job_name = ? AND status IN (?, ?, ?)",
-            (
-                job_name, ProductStatus.PENDING.value, ProductStatus.DOWNLOADING.value, ProductStatus.FAILED.value
-            ),
+            (job_name, ProductStatus.PENDING.value, ProductStatus.DOWNLOADING.value, ProductStatus.FAILED.value),
         ).fetchall()
         return [self._row_to_record(row) for row in rows]
 

@@ -36,7 +36,6 @@ def mock_token():
 @pytest.fixture
 def basic_config(tmp_path):
     return AppConfig(
-
         jobs=[
             JobConfig(
                 name="test-job",
@@ -52,7 +51,6 @@ def basic_config(tmp_path):
 @pytest.fixture
 def post_process_config(tmp_path):
     return AppConfig(
-
         jobs=[
             JobConfig(
                 name="test-job",
@@ -415,7 +413,6 @@ class TestPipeline:
     def test_shutdown_between_jobs(self, mock_token, mock_session):
         """Shutdown signal between jobs stops the pipeline."""
         two_job_config = AppConfig(
-
             jobs=[
                 JobConfig(name="job1", collection="COL1", filters=SearchFilters()),
                 JobConfig(name="job2", collection="COL2", filters=SearchFilters()),

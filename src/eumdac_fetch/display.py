@@ -52,7 +52,7 @@ def display_search_results(products: list, total: int, filters_used: dict) -> No
 
     for i, product in enumerate(products, 1):
         product_id = str(product)
-        product_size = getattr(product, 'size', None)
+        product_size = getattr(product, "size", None)
         product_size = f"{product_size:,.0f}" if isinstance(product_size, (int, float)) else "N/A"
         table.add_row(str(i), product_id, product_size)
 

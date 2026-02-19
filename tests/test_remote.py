@@ -15,6 +15,7 @@ from eumdac_fetch.remote import TokenRefreshingHTTPFileSystem
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _make_token(access_token_value: str = "tok-abc123"):
     """Return a mock eumdac.AccessToken whose .access_token property is stable."""
     token = mock.MagicMock()
@@ -28,6 +29,7 @@ def _make_fs(token, *, existing_token: str | None = None):
     The parent HTTPFileSystem.__init__ is replaced with a minimal stub that
     sets ``self.kwargs`` (the only attribute our class depends on at runtime).
     """
+
     def _stub_init(self, *args, **kwargs):
         self.kwargs = kwargs  # HTTPFileSystem stores kwargs verbatim
 
@@ -46,8 +48,8 @@ def _make_fs(token, *, existing_token: str | None = None):
 # TokenRefreshingHTTPFileSystem — unit tests (no network)
 # ---------------------------------------------------------------------------
 
-class TestTokenRefreshingHTTPFileSystem:
 
+class TestTokenRefreshingHTTPFileSystem:
     # --- __init__ ---
 
     def test_init_stores_token_obj(self):
@@ -215,9 +217,7 @@ class TestTokenRefreshingHTTPFileSystem:
             nonlocal call_count
             call_count += 1
             if call_count == 1:
-                raise aiohttp.ClientResponseError(
-                    request_info=mock.MagicMock(), history=(), status=401
-                )
+                raise aiohttp.ClientResponseError(request_info=mock.MagicMock(), history=(), status=401)
             received_header.update(kwargs.get("headers", {}))
             return "ok"
 
@@ -367,10 +367,7 @@ class TestTokenRefreshingHTTPFileSystemIntegration:
         ds = xr.open_dataset(f, engine="h5netcdf")
         var_name = next(iter(ds.data_vars))
         var = ds[var_name]
-        indexers = {
-            dim: slice(size // 2, size // 2 + 10)
-            for dim, size in zip(var.dims, var.shape, strict=True)
-        }
+        indexers = {dim: slice(size // 2, size // 2 + 10) for dim, size in zip(var.dims, var.shape, strict=True)}
         values = var.isel(**indexers).values
         assert values.shape == (10,) * len(var.dims)
         ds.close()

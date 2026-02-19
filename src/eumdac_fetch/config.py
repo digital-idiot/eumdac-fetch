@@ -19,7 +19,7 @@ from eumdac_fetch.models import (
 )
 
 JSONPrimitive = None | bool | int | float | str
-JSONValue = JSONPrimitive | 'JSONList' | 'JSONObject'
+JSONValue = JSONPrimitive | "JSONList" | "JSONObject"
 JSONList = list[JSONValue]
 JSONObject = dict[str, JSONValue]
 JSONType = JSONList | JSONObject

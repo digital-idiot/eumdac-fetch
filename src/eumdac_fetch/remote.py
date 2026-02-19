@@ -75,9 +75,7 @@ class TokenRefreshingHTTPFileSystem(HTTPFileSystem):
 
         # Pre-populate so the very first request is already authenticated.
         # token_obj.access_token is a synchronous property — safe at __init__ time.
-        kwargs.setdefault("headers", {})["Authorization"] = (
-            f"Bearer {token_obj.access_token}"
-        )
+        kwargs.setdefault("headers", {})["Authorization"] = f"Bearer {token_obj.access_token}"
 
         # URLs served by many REST APIs already contain percent-encoded characters.
         # Without encoded=True fsspec re-encodes them (e.g. %3A → %253A),
@@ -138,9 +136,7 @@ class TokenRefreshingHTTPFileSystem(HTTPFileSystem):
             # Sync the new auth value into any per-call headers the caller
             # passed explicitly so the retry uses a consistent header set.
             if "headers" in kwargs:
-                kwargs["headers"]["Authorization"] = (
-                    self.kwargs["headers"]["Authorization"]
-                )
+                kwargs["headers"]["Authorization"] = self.kwargs["headers"]["Authorization"]
             return await coro_func(*args, **kwargs)
 
     # ------------------------------------------------------------------
@@ -160,9 +156,7 @@ class TokenRefreshingHTTPFileSystem(HTTPFileSystem):
     # ------------------------------------------------------------------
 
     async def _cat_file(self, url, start=None, end=None, **kwargs):
-        return await self._run_with_refresh(
-            super()._cat_file, url, start, end, **kwargs
-        )
+        return await self._run_with_refresh(super()._cat_file, url, start, end, **kwargs)
 
     async def _info(self, url, **kwargs):
         return await self._run_with_refresh(super()._info, url, **kwargs)

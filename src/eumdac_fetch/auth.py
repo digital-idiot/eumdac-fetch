@@ -47,6 +47,7 @@ _token: eumdac.AccessToken | None = None
 # Public API
 # ---------------------------------------------------------------------------
 
+
 def create_token() -> eumdac.AccessToken:
     """Create a **fresh** EUMDAC ``AccessToken`` from :data:`ENV` credentials.
 

@@ -35,6 +35,7 @@ DEFAULT_VALIDITY: int = 86400  # 24 hours in seconds
 # Internal helpers
 # ---------------------------------------------------------------------------
 
+
 def _parse_dotenv(path: Path) -> dict[str, str]:
     """Parse a .env file into a ``{key: value}`` dict.
 
@@ -112,7 +113,7 @@ def _load_credentials() -> tuple[str | None, str | None, int]:
                     validity = parsed
             if key and secret:
                 return key, secret, validity
-        except (OSError, ValueError):
+        except OSError, ValueError:
             logger.debug("Failed to parse .env file", exc_info=True)
 
     # 3. ~/.eumdac/credentials  (format: "key,secret")
@@ -122,7 +123,7 @@ def _load_credentials() -> tuple[str | None, str | None, int]:
             parts = [p.strip() for p in cred_file.read_text().strip().split(",")]
             key = key or (parts[0] if len(parts) >= 1 else None) or None
             secret = secret or (parts[1] if len(parts) >= 2 else None) or None
-        except (OSError, ValueError):
+        except OSError, ValueError:
             logger.debug("Failed to parse ~/.eumdac/credentials", exc_info=True)
 
     return key, secret, validity

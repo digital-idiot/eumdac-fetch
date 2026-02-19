@@ -5,6 +5,7 @@ from __future__ import annotations
 import warnings
 from unittest import mock
 
+import eumdac_fetch.env as env_module
 from eumdac_fetch.env import DEFAULT_VALIDITY, ENV, _Env, _load_credentials, _parse_dotenv
 
 # ---------------------------------------------------------------------------
@@ -220,6 +221,7 @@ class TestEnv:
         monkeypatch.delenv("EUMDAC_KEY", raising=False)
         monkeypatch.delenv("EUMDAC_SECRET", raising=False)
         monkeypatch.delenv("EUMDAC_TOKEN_VALIDITY", raising=False)
+        monkeypatch.setattr(env_module, "_credentials_warning_emitted", False)
         with mock.patch("pathlib.Path.home", return_value=tmp_path), warnings.catch_warnings(record=True) as caught:
             warnings.simplefilter("always")
             env = _Env()

@@ -1,0 +1,27 @@
+logging:
+  level: INFO
+  file: "./eumdac-fetch.log"
+
+jobs:
+  - name: "msg-seviri-daily"
+    collection: "EO:EUM:DAT:MSG:HRSEVIRI"
+    filters:
+      dtstart: "2024-01-01T00:00:00Z"
+      dtend: "2024-01-02T00:00:00Z"
+      geo: "POLYGON((10.09 56.09, 10.34 56.09, 10.34 56.19, 10.09 56.19, 10.09 56.09))"
+      sat: "MSG4"
+      timeliness: "NT"
+      sort: "start,time,1"  # ascending by sensing time (default)
+      # Also supported: filename, cycle, orbit, relorbit, product_type,
+      #                 publication, download_coverage
+      # Sort options: "start,time,1" (ascending time), "publicationDate,,0"
+      #               (newest published first), "publicationDate,,1" (oldest first)
+    limit: 100  # max products to download (omit for all)
+    download:
+      directory: "./downloads"
+      parallel: 4
+      resume: true
+      verify_md5: true
+    post_process:
+      enabled: true
+      output_dir: "./output"

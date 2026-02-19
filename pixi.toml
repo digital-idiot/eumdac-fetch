@@ -1,0 +1,46 @@
+[workspace]
+name = "eumdac-fetch"
+channels = ["conda-forge"]
+platforms = ["linux-64", "osx-64", "osx-arm64", "win-64"]
+
+[dependencies]
+python = ">=3.14"
+eumdac = "*"
+rich = ">=13.0.0"
+fsspec = ">=2023.0.0"
+aiohttp = ">=3.8.0"
+pixi-pycharm = ">=0.0.10"
+
+[pypi-dependencies]
+eumdac-fetch = { path = ".", editable = true }
+click = ">=8.0.0"
+pyyaml = ">=6.0"
+
+[tasks]
+start = "eumdac-fetch --help"
+test = "pytest tests/ -v"
+lint = "ruff check src/ tests/"
+format = "ruff format src/ tests/"
+format-check = "ruff format --check src/ tests/"
+docs = "sphinx-build -b html docs/ docs/_build/html"
+docs-serve = "python -m http.server -d docs/_build/html 8000"
+pycharm-conda-shim = "echo $CONDA_PREFIX/libexec/conda"
+
+[feature.dev.dependencies]
+pytest = ">=8.0.0"
+pytest-asyncio = ">=0.23.0"
+pytest-cov = ">=4.0.0"
+ruff = ">=0.3.0"
+xarray = ">=2024.0.0"
+h5netcdf = ">=1.0.0"
+
+[feature.dev.pypi-dependencies]
+eumdac-fetch = { path = ".", editable = true, extras = ["dev"] }
+
+[feature.docs.pypi-dependencies]
+eumdac-fetch = { path = ".", editable = true, extras = ["docs"] }
+
+[environments]
+default = { solve-group = "default" }
+dev = { features = ["dev"], solve-group = "default" }
+docs = { features = ["docs"], solve-group = "default" }

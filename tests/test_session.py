@@ -192,8 +192,10 @@ class TestSessionLifecycle:
         assert s.config_path == s.session_dir / "config.yaml"
 
     def test_download_dir_uses_collection(self, tmp_path, base_job):
+        from eumdac_fetch.session import _sanitize_dirname
+
         s = Session(base_job, base_dir=tmp_path)
-        assert s.download_dir == tmp_path / "downloads" / base_job.collection
+        assert s.download_dir == tmp_path / "downloads" / _sanitize_dirname(base_job.collection)
 
     def test_base_dir_from_env(self, tmp_path, base_job, monkeypatch):
         """EUMDAC_FETCH_HOME env var overrides default base dir."""

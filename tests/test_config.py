@@ -150,16 +150,13 @@ class TestLoadConfig:
 
     def test_absolute_path_preserved(self, tmp_path):
         """Absolute paths in config are kept as-is."""
+        abs_path = Path(tmp_path.anchor) / "absolute" / "path" / "downloads"
         f = tmp_path / "abs.yaml"
         f.write_text(
-            "jobs:\n"
-            "  - name: abs-test\n"
-            "    collection: COL1\n"
-            "    download:\n"
-            "      directory: /absolute/path/downloads\n"
+            f"jobs:\n  - name: abs-test\n    collection: COL1\n    download:\n      directory: {abs_path.as_posix()}\n"
         )
         config = load_config(f)
-        assert config.jobs[0].download.directory == Path("/absolute/path/downloads")
+        assert config.jobs[0].download.directory == abs_path
 
     def test_job_with_limit(self, tmp_path):
         """Job limit is parsed correctly."""
@@ -192,6 +189,7 @@ class TestLoadConfig:
 
     def test_post_process_config_parsed(self, tmp_path):
         """Post-process config with absolute output_dir."""
+        abs_path = Path(tmp_path.anchor) / "absolute" / "output"
         f = tmp_path / "pp.yaml"
         f.write_text(
             "jobs:\n"
@@ -199,11 +197,11 @@ class TestLoadConfig:
             "    collection: COL1\n"
             "    post_process:\n"
             "      enabled: true\n"
-            "      output_dir: /absolute/output\n"
+            f"      output_dir: {abs_path.as_posix()}\n"
         )
         config = load_config(f)
         assert config.jobs[0].post_process.enabled is True
-        assert config.jobs[0].post_process.output_dir == Path("/absolute/output")
+        assert config.jobs[0].post_process.output_dir == abs_path
 
     def test_default_job_name(self, tmp_path):
         """Job without a name gets 'default'."""

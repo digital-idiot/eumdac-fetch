@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import re
 from dataclasses import asdict
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
@@ -17,6 +18,14 @@ from eumdac_fetch.models import JobConfig
 LIVE_THRESHOLD = timedelta(hours=3)
 
 DEFAULT_BASE_DIR = Path.home() / ".eumdac-fetch"
+
+# Characters forbidden in Windows directory/file names
+_INVALID_DIRNAME_RE = re.compile(r'[<>:"/\\|?*]')
+
+
+def _sanitize_dirname(name: str) -> str:
+    """Replace characters invalid in Windows directory names with underscores."""
+    return _INVALID_DIRNAME_RE.sub("_", name)
 
 
 class Session:
@@ -32,7 +41,7 @@ class Session:
         self.base_dir = base_dir or Path(os.environ.get("EUMDAC_FETCH_HOME", str(DEFAULT_BASE_DIR)))
         self.session_id = self._compute_id()
         self.session_dir = self.base_dir / "sessions" / self.session_id
-        self.download_dir = self.base_dir / "downloads" / job.collection
+        self.download_dir = self.base_dir / "downloads" / _sanitize_dirname(job.collection)
         self.is_new = not self.session_dir.exists()
         self.is_live = self._check_live()
 
@@ -52,7 +61,7 @@ class Session:
         if isinstance(obj, list):
             return [self._sanitize_for_json(item) for item in obj]
         if isinstance(obj, Path):
-            return str(obj)
+            return obj.as_posix()
         if isinstance(obj, datetime):
             return obj.isoformat()
         return obj

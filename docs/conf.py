@@ -1,5 +1,11 @@
 """Sphinx configuration for eumdac-fetch documentation."""
 
+import sys
+from pathlib import Path
+
+# Make the package importable without a pip install (needed for Read the Docs).
+sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+
 project = "eumdac-fetch"
 copyright = "2026, digital-idiot"
 author = "digital-idiot"

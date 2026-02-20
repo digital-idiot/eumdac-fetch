@@ -6,6 +6,7 @@ Credentials are **never stored in the config file** — see the Credentials sect
 ## Full Example
 
 ```yaml
+#file: noinspection SpellCheckingInspection
 logging:
   level: INFO
   file: fetch.log
@@ -43,11 +44,11 @@ Credentials are **not stored in the config file**. Including a `credentials:` ke
 
 eumdac-fetch discovers credentials automatically at startup in this priority order:
 
-| Priority | Source | Variables |
-|----------|--------|-----------|
-| 1 | Environment variables | `EUMDAC_KEY`, `EUMDAC_SECRET`, `EUMDAC_TOKEN_VALIDITY` |
-| 2 | `.env` file | Same variable names, `KEY=value` format |
-| 3 | `~/.eumdac/credentials` | Single line: `key,secret` (key/secret only) |
+| Priority | Source                  | Variables                                              |
+|----------|-------------------------|--------------------------------------------------------|
+| 1        | Environment variables   | `EUMDAC_KEY`, `EUMDAC_SECRET`, `EUMDAC_TOKEN_VALIDITY` |
+| 2        | `.env` file             | Same variable names, `KEY=value` format                |
+| 3        | `~/.eumdac/credentials` | Single line: `key,secret` (key/secret only)            |
 
 `EUMDAC_TOKEN_VALIDITY` controls how long each access token is valid (in seconds, default 86400). It can only be set via env var or `.env` file — the credentials file always contains only the key/secret pair.
 
@@ -78,60 +79,60 @@ eumdac-fetch download -c job.yaml --validity 7200
 
 ## Logging
 
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `level` | string | `INFO` | Log level: DEBUG, INFO, WARNING, ERROR |
-| `file` | string | null | Optional log file path |
+| Field   | Type   | Default | Description                            |
+|---------|--------|---------|----------------------------------------|
+| `level` | string | `INFO`  | Log level: DEBUG, INFO, WARNING, ERROR |
+| `file`  | string | null    | Optional log file path                 |
 
 ## Jobs
 
 Each job defines a collection to search and download from.
 
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `name` | string | `default` | Job identifier (used in session and state tracking) |
-| `collection` | string | **required** | EUMETSAT collection ID (e.g. `EO:EUM:DAT:MSG:HRSEVIRI`) |
-| `limit` | integer | null | Max products to download (null = all matching) |
+| Field        | Type    | Default      | Description                                             |
+|--------------|---------|--------------|---------------------------------------------------------|
+| `name`       | string  | `default`    | Job identifier (used in session and state tracking)     |
+| `collection` | string  | **required** | EUMETSAT collection ID (e.g. `EO:EUM:DAT:MSG:HRSEVIRI`) |
+| `limit`      | integer | null         | Max products to download (null = all matching)          |
 
 ### Search Filters
 
 All filters are optional. They map directly to the eumdac `collection.search()` API.
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `dtstart` | ISO 8601 datetime | Start of time range |
-| `dtend` | ISO 8601 datetime | End of time range |
-| `geo` | WKT string | Geographic filter (e.g. `POLYGON((...))`) |
-| `sat` | string | Satellite name (e.g. `MSG4`, `Metop-C`) |
-| `timeliness` | string | Timeliness class (e.g. `NT`, `NRT`) |
-| `filename` | string | Filename pattern filter |
-| `cycle` | integer | Repeat cycle number |
-| `orbit` | integer | Orbit number |
-| `relorbit` | integer | Relative orbit number |
-| `product_type` | string | Product type filter |
-| `publication` | string | Publication status |
-| `download_coverage` | string | Download coverage filter |
-| `sort` | string | Sort order (default: `start,time,1`) |
+| Field               | Type              | Description                               |
+|---------------------|-------------------|-------------------------------------------|
+| `dtstart`           | ISO 8601 datetime | Start of time range                       |
+| `dtend`             | ISO 8601 datetime | End of time range                         |
+| `geo`               | WKT string        | Geographic filter (e.g. `POLYGON((...))`) |
+| `sat`               | string            | Satellite name (e.g. `MSG4`, `Metop-C`)   |
+| `timeliness`        | string            | Timeliness class (e.g. `NT`, `NRT`)       |
+| `filename`          | string            | Filename pattern filter                   |
+| `cycle`             | integer           | Repeat cycle number                       |
+| `orbit`             | integer           | Orbit number                              |
+| `relorbit`          | integer           | Relative orbit number                     |
+| `product_type`      | string            | Product type filter                       |
+| `publication`       | string            | Publication status                        |
+| `download_coverage` | string            | Download coverage filter                  |
+| `sort`              | string            | Sort order (default: `start,time,1`)      |
 
 ### Download Settings
 
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `enabled` | boolean | `true` | Set to `false` to skip downloading (search + cache only) |
-| `directory` | path | `./downloads` | Download directory (relative to config file) |
-| `parallel` | integer | `4` | Number of concurrent downloads |
-| `resume` | boolean | `true` | Resume interrupted downloads via byte-range requests |
-| `verify_md5` | boolean | `true` | Verify MD5 checksum after download (whole products only) |
-| `max_retries` | integer | `3` | Maximum retry attempts for transient errors |
-| `retry_backoff` | float | `2.0` | Base backoff in seconds (doubles each retry) |
-| `timeout` | float | `300.0` | Per-product download timeout in seconds |
-| `entries` | list of strings | `null` | Glob patterns for entry-level downloads (see below) |
+| Field           | Type            | Default       | Description                                              |
+|-----------------|-----------------|---------------|----------------------------------------------------------|
+| `enabled`       | boolean         | `true`        | Set to `false` to skip downloading (search + cache only) |
+| `directory`     | path            | `./downloads` | Download directory (relative to config file)             |
+| `parallel`      | integer         | `4`           | Number of concurrent downloads                           |
+| `resume`        | boolean         | `true`        | Resume interrupted downloads via byte-range requests     |
+| `verify_md5`    | boolean         | `true`        | Verify MD5 checksum after download (whole products only) |
+| `max_retries`   | integer         | `3`           | Maximum retry attempts for transient errors              |
+| `retry_backoff` | float           | `2.0`         | Base backoff in seconds (doubles each retry)             |
+| `timeout`       | float           | `300.0`       | Per-product download timeout in seconds                  |
+| `entries`       | list of strings | `null`        | Glob patterns for entry-level downloads (see below)      |
 
 Setting `download.enabled: false` runs a **search-only** pass: products are found, cached in the session state database as `PENDING`, but no files are written to disk. A later run with `download.enabled: true` (or `--download` on the CLI) resumes and downloads the cached results.
 
 #### Entry-Level Downloads
 
-By default eumdac-fetch downloads **whole products** — typically a ZIP archive containing all data files for that product.
+By default, eumdac-fetch downloads **whole products** — typically a ZIP archive containing all data files for that product.
 
 The `entries` field lets you download **individual files from within a product** by providing a list of glob patterns matched against entry names:
 
@@ -157,15 +158,15 @@ Leave `entries` unset (or `null`) to download the full product archive.
 An optional filter applied to the search results **before** they are cached and passed
 to the downloader. See {doc}`filters` for full details.
 
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `type` | string | — | Filter type: a built-in name (e.g. `sample_interval`) or `module:factory` |
-| *(extra keys)* | any | — | Forwarded as keyword arguments to the filter factory |
+| Field          | Type   | Default | Description                                                               |
+|----------------|--------|---------|---------------------------------------------------------------------------|
+| `type`         | string | —       | Filter type: a built-in name (e.g. `sample_interval`) or `module:factory` |
+| *(extra keys)* | any    | —       | Forwarded as keyword arguments to the filter factory                      |
 
 Built-in types:
 
-| Type | Parameters | Description |
-|------|-----------|-------------|
+| Type              | Parameters              | Description                             |
+|-------------------|-------------------------|-----------------------------------------|
 | `sample_interval` | `interval_hours: float` | Keep one product per N-hour time bucket |
 
 Example:
@@ -178,11 +179,11 @@ post_search_filter:
 
 ### Post-Processing
 
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `enabled` | boolean | `false` | Enable post-processing in `run` mode |
-| `mode` | string | `local` | Processing mode: `local` (download first) or `remote` (stream without download) |
-| `output_dir` | path | `./output` | Output directory for processed files |
+| Field        | Type    | Default    | Description                                                                     |
+|--------------|---------|------------|---------------------------------------------------------------------------------|
+| `enabled`    | boolean | `false`    | Enable post-processing in `run` mode                                            |
+| `mode`       | string  | `local`    | Processing mode: `local` (download first) or `remote` (stream without download) |
+| `output_dir` | path    | `./output` | Output directory for processed files                                            |
 
 - **`local`** (default): download → verify → post-process. Requires `--post-processor`.
 - **`remote`**: stream products directly from EUMETSAT without writing to disk. Requires `--remote-processor`. Overrides `download.enabled`.

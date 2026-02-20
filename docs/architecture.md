@@ -42,23 +42,23 @@ flowchart LR
 
 ## Module Overview
 
-| Module | Responsibility |
-|--------|---------------|
-| `cli.py` | Click CLI entry point: `collections`, `info`, `search`, `download`, `run` |
-| `config.py` | YAML loading, env var interpolation, path resolution |
-| `filters.py` | Post-search filter registry, `build_filter()`, built-in `sample_interval` |
-| `models.py` | Dataclasses for all configuration and state types |
-| `auth.py` | `create_token()` and `get_token()` — lazy process-level token singleton backed by `ENV` |
-| `env.py` | Credential discovery singleton: env vars → `.env` → `~/.eumdac/credentials` (key/secret only) |
-| `remote.py` | `TokenRefreshingHTTPFileSystem`: fsspec HTTP filesystem with auto token refresh |
-| `dataset.py` | `RemoteDataset` / `RemoteData`: high-level wrappers for authenticated remote file access |
-| `search.py` | Collection info, product search, count, >10k date bisection |
-| `session.py` | Deterministic session IDs, directory lifecycle, live detection |
-| `state.py` | SQLite state database (thread-safe, WAL mode) |
-| `downloader.py` | Async parallel downloads with resume, retry, MD5 |
-| `pipeline.py` | Producer-consumer orchestration for `run` command |
-| `display.py` | Rich console output (tables, progress) |
-| `logging_config.py` | Structured logging with Rich and file handlers |
+| Module              | Responsibility                                                                                |
+|---------------------|-----------------------------------------------------------------------------------------------|
+| `cli.py`            | Click CLI entry point: `collections`, `info`, `search`, `download`, `run`                     |
+| `config.py`         | YAML loading, env var interpolation, path resolution                                          |
+| `filters.py`        | Post-search filter registry, `build_filter()`, built-in `sample_interval`                     |
+| `models.py`         | Dataclasses for all configuration and state types                                             |
+| `auth.py`           | `create_token()` and `get_token()` — lazy process-level token singleton backed by `ENV`       |
+| `env.py`            | Credential discovery singleton: env vars → `.env` → `~/.eumdac/credentials` (key/secret only) |
+| `remote.py`         | `TokenRefreshingHTTPFileSystem`: fsspec HTTP filesystem with auto token refresh               |
+| `dataset.py`        | `RemoteDataset` / `RemoteData`: high-level wrappers for authenticated remote file access      |
+| `search.py`         | Collection info, product search, count, >10k date bisection                                   |
+| `session.py`        | Deterministic session IDs, directory lifecycle, live detection                                |
+| `state.py`          | SQLite state database (thread-safe, WAL mode)                                                 |
+| `downloader.py`     | Async parallel downloads with resume, retry, MD5                                              |
+| `pipeline.py`       | Producer-consumer orchestration for `run` command                                             |
+| `display.py`        | Rich console output (tables, progress)                                                        |
+| `logging_config.py` | Structured logging with Rich and file handlers                                                |
 
 ## Product Status State Machine
 

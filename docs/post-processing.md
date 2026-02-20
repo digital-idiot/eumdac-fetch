@@ -16,6 +16,8 @@ A post-processor is a Python function with this signature:
 ```python
 from pathlib import Path
 
+
+# noinspection PyUnusedLocal
 def my_processor(download_path: Path, product_id: str) -> None:
     """Process a downloaded satellite product.
 
@@ -74,6 +76,8 @@ eumdac-fetch run -c job.yaml --post-processor processors:extract_nc
 # cog_convert.py
 from pathlib import Path
 
+
+# noinspection PyUnusedLocal
 def to_cog(download_path: Path, product_id: str) -> None:
     """Convert a GeoTIFF product to Cloud-Optimised GeoTIFF."""
     import subprocess
@@ -116,6 +120,7 @@ flowchart TB
 Enable local post-processing in the job config:
 
 ```yaml
+#file: noinspection SpellCheckingInspection
 jobs:
   - name: my-job
     collection: "EO:EUM:DAT:MSG:HRSEVIRI"
@@ -150,6 +155,8 @@ Remote mode lets you process EUMETSAT products **without downloading them to dis
 from eumdac_fetch import RemoteDataset
 import xarray as xr
 
+
+# noinspection PyUnusedLocal
 def my_remote_processor(dataset: RemoteDataset, product_id: str) -> None:
     """Process a product by streaming it directly from EUMETSAT.
 
@@ -178,6 +185,7 @@ You can also restrict which entries are included by setting `download.entries` i
 ### Configuration
 
 ```yaml
+#file: noinspection SpellCheckingInspection
 jobs:
   - name: my-job
     collection: "EO:EUM:DAT:MSG:HRSEVIRI"

@@ -16,6 +16,8 @@ if TYPE_CHECKING:
 PostProcessorFn = Callable[[Path, str], None]
 
 # Remote post-processor hook: receives (RemoteDataset, product_id)
+# "RemoteDataset" is a forward reference — the import lives under TYPE_CHECKING
+# to avoid the circular import eumdac_fetch.models → eumdac_fetch.dataset → …
 RemotePostProcessorFn = Callable[["RemoteDataset", str], None]
 
 

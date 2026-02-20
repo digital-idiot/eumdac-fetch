@@ -8,44 +8,44 @@ eumdac-fetch uses a SQLite database to track the status of every product through
 
 Tracks per-product download and processing state.
 
-| Column | Type | Description |
-|--------|------|-------------|
-| `product_id` | TEXT | Product identifier (primary key with job_name) |
-| `job_name` | TEXT | Job name (primary key with product_id) |
-| `collection` | TEXT | Collection ID |
-| `size_kb` | REAL | Product size in kilobytes (from metadata) |
-| `md5` | TEXT | Expected MD5 hash |
-| `bytes_downloaded` | INTEGER | Bytes downloaded so far |
-| `status` | TEXT | Current status (see below) |
-| `download_path` | TEXT | Path to downloaded file |
-| `error_message` | TEXT | Error details if FAILED |
-| `created_at` | TEXT | ISO 8601 creation timestamp |
-| `updated_at` | TEXT | ISO 8601 last update timestamp |
+| Column             | Type    | Description                                    |
+|--------------------|---------|------------------------------------------------|
+| `product_id`       | TEXT    | Product identifier (primary key with job_name) |
+| `job_name`         | TEXT    | Job name (primary key with product_id)         |
+| `collection`       | TEXT    | Collection ID                                  |
+| `size_kb`          | REAL    | Product size in kilobytes (from metadata)      |
+| `md5`              | TEXT    | Expected MD5 hash                              |
+| `bytes_downloaded` | INTEGER | Bytes downloaded so far                        |
+| `status`           | TEXT    | Current status (see below)                     |
+| `download_path`    | TEXT    | Path to downloaded file                        |
+| `error_message`    | TEXT    | Error details if FAILED                        |
+| `created_at`       | TEXT    | ISO 8601 creation timestamp                    |
+| `updated_at`       | TEXT    | ISO 8601 last update timestamp                 |
 
 ### `search_results` table
 
 Caches search result metadata for session resume.
 
-| Column | Type | Description |
-|--------|------|-------------|
-| `product_id` | TEXT | Product identifier (primary key) |
-| `collection` | TEXT | Collection ID |
-| `size_kb` | REAL | Product size in kilobytes |
-| `sensing_start` | TEXT | Sensing start time |
-| `sensing_end` | TEXT | Sensing end time |
-| `cached_at` | TEXT | When the result was cached |
+| Column          | Type | Description                      |
+|-----------------|------|----------------------------------|
+| `product_id`    | TEXT | Product identifier (primary key) |
+| `collection`    | TEXT | Collection ID                    |
+| `size_kb`       | REAL | Product size in kilobytes        |
+| `sensing_start` | TEXT | Sensing start time               |
+| `sensing_end`   | TEXT | Sensing end time                 |
+| `cached_at`     | TEXT | When the result was cached       |
 
 ## Product Status Values
 
-| Status | Description |
-|--------|-------------|
-| `pending` | Registered but not yet downloading |
-| `downloading` | Download in progress |
-| `downloaded` | Download complete, awaiting verification |
-| `verified` | MD5 verification passed |
-| `processing` | Post-processor is running |
-| `processed` | Post-processing complete |
-| `failed` | An error occurred (see `error_message`) |
+| Status        | Description                              |
+|---------------|------------------------------------------|
+| `pending`     | Registered but not yet downloading       |
+| `downloading` | Download in progress                     |
+| `downloaded`  | Download complete, awaiting verification |
+| `verified`    | MD5 verification passed                  |
+| `processing`  | Post-processor is running                |
+| `processed`   | Post-processing complete                 |
+| `failed`      | An error occurred (see `error_message`)  |
 
 ## Thread Safety
 

@@ -239,6 +239,31 @@ class Pipeline:
         finally:
             await process_queue.put(SENTINEL)
 
+    async def _run_in_thread_with_status(
+        self,
+        state_db: StateDB,
+        product_id: str,
+        job_name: str,
+        process_queue: asyncio.Queue,
+        fn,
+        args: tuple,
+        label: str,
+    ) -> None:
+        """Call fn(*args) in a thread pool, updating product status to PROCESSED or FAILED."""
+        try:
+            await asyncio.to_thread(fn, *args)
+            state_db.update_status(product_id, job_name, ProductStatus.PROCESSED)
+        except Exception as e:
+            logger.error("%s failed for %s: %s", label, product_id, e)
+            state_db.update_status(
+                product_id,
+                job_name,
+                ProductStatus.FAILED,
+                error_message=f"{label} failed: {e}",
+            )
+        finally:
+            process_queue.task_done()
+
     async def _post_process_consumer(
         self,
         state_db: StateDB,
@@ -256,27 +281,16 @@ class Pipeline:
 
             logger.info("Post-processing product: %s", record.product_id)
             state_db.update_status(record.product_id, job_name, ProductStatus.PROCESSING)
-
-            try:
-                download_path = Path(record.download_path)
-                await asyncio.to_thread(self.post_processor, download_path, record.product_id)
-
-                state_db.update_status(
-                    record.product_id,
-                    job_name,
-                    ProductStatus.PROCESSED,
-                )
-
-            except Exception as e:
-                logger.error("Post-processing failed for %s: %s", record.product_id, e)
-                state_db.update_status(
-                    record.product_id,
-                    job_name,
-                    ProductStatus.FAILED,
-                    error_message=f"Post-processing failed: {e}",
-                )
-
-            process_queue.task_done()
+            download_path = Path(record.download_path)
+            await self._run_in_thread_with_status(
+                state_db,
+                record.product_id,
+                job_name,
+                process_queue,
+                self.post_processor,
+                (download_path, record.product_id),
+                "Post-processing",
+            )
 
     async def _run_remote(self, products: list, job, state_db: StateDB, _session: Session) -> None:
         """Run remote post-processing pipeline without downloading files."""
@@ -338,20 +352,15 @@ class Pipeline:
             dataset, product_id = item
             logger.info("Remote processing product: %s", product_id)
             state_db.update_status(product_id, job_name, ProductStatus.PROCESSING)
-
-            try:
-                await asyncio.to_thread(self.remote_post_processor, dataset, product_id)
-                state_db.update_status(product_id, job_name, ProductStatus.PROCESSED)
-            except Exception as e:
-                logger.error("Remote processing failed for %s: %s", product_id, e)
-                state_db.update_status(
-                    product_id,
-                    job_name,
-                    ProductStatus.FAILED,
-                    error_message=f"Remote processing failed: {e}",
-                )
-
-            process_queue.task_done()
+            await self._run_in_thread_with_status(
+                state_db,
+                product_id,
+                job_name,
+                process_queue,
+                self.remote_post_processor,
+                (dataset, product_id),
+                "Remote processing",
+            )
 
     def _handle_signal(self) -> None:
         """Handle shutdown signal."""

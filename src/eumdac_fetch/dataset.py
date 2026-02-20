@@ -31,6 +31,7 @@ from __future__ import annotations
 
 import fnmatch
 from collections.abc import Iterator
+from urllib.parse import quote
 
 from eumdac_fetch.auth import get_token
 from eumdac_fetch.remote import TokenRefreshingHTTPFileSystem
@@ -191,13 +192,24 @@ class RemoteDataset:
 def build_remote_dataset(product, token, entry_patterns: list[str] | None = None) -> RemoteDataset:
     """Build a RemoteDataset from a eumdac product object.
 
-    Extracts per-entry URLs from product.links.
-    If entry_patterns is given, only matching entry names are included.
+    Uses ``product.entries`` (a list of entry name strings) and derives each
+    entry URL as ``{product.url}/entry?name={percent-encoded-name}``, which is
+    the standard EUMDAC Data Store pattern used for range-request access.
+
+    Parameters
+    ----------
+    product:
+        A eumdac product object with ``.entries`` and ``.url`` attributes.
+    token:
+        Token manager passed through to :class:`RemoteDataset`.
+    entry_patterns:
+        Optional list of ``fnmatch`` glob patterns.  When given, only entries
+        whose name matches at least one pattern are included.  ``None`` means
+        all entries are included.
     """
+    base_url = product.url.split("?")[0]
     entries: dict[str, str] = {}
-    for link in product.links:
-        name = link.title
-        url = link.href
+    for name in product.entries:
         if entry_patterns is None or any(fnmatch.fnmatch(name, p) for p in entry_patterns):
-            entries[name] = url
+            entries[name] = f"{base_url}/entry?name={quote(name, safe='')}"
     return RemoteDataset(entries, token_manager=token)

@@ -4,7 +4,7 @@ eumdac-fetch uses deterministic sessions to enable automatic resume across runs.
 
 ## Session Identity
 
-A session ID is a 12-character hex string derived from a SHA-256 hash of the job configuration (excluding credentials). This means:
+A session ID is a 12-character hex string derived from an SHA-256 hash of the job configuration (excluding credentials). This means:
 
 - The **same YAML config** always produces the **same session ID**
 - Re-running the same config automatically resumes from where it left off

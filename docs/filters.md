@@ -22,12 +22,13 @@ flowchart LR
 Add a `post_search_filter` block to any job:
 
 ```yaml
+#file: noinspection SpellCheckingInspection
 jobs:
   - name: mtg-fci-hrfi-3h
     collection: "EO:EUM:DAT:0665"
     filters:
       dtstart: "2025-01-01T00:00:00Z"
-      dtend:   "2026-01-01T00:00:00Z"
+      dtend: "2026-01-01T00:00:00Z"
     post_search_filter:
       type: sample_interval
       interval_hours: 3
@@ -44,8 +45,8 @@ factory as keyword arguments (`params`).
 
 Temporally subsamples a product list to at most one product per time bucket.
 
-| Parameter | Type | Description |
-|---|---|---|
+| Parameter        | Type  | Description                                            |
+|------------------|-------|--------------------------------------------------------|
 | `interval_hours` | float | Bucket width in hours (e.g. `3` → one product per 3 h) |
 
 Products are sorted ascending by `sensing_start` and the **first** product that falls
@@ -60,14 +61,14 @@ post_search_filter:
 **Example** — MTG FCI at 10-min cadence, subsampled to 3 h:
 
 | Sensing start | Bucket (3 h) | Kept? |
-|---|---|---|
-| 00:00 | 0 | ✓ |
-| 00:10 | 0 | — |
-| 00:20 | 0 | — |
-| … | 0 | — |
-| 03:00 | 1 | ✓ |
-| 03:10 | 1 | — |
-| … | | |
+|---------------|--------------|-------|
+| 00:00         | 0            | ✓     |
+| 00:10         | 0            | —     |
+| 00:20         | 0            | —     |
+| …             | 0            | —     |
+| 03:00         | 1            | ✓     |
+| 03:10         | 1            | —     |
+| …             |              |       |
 
 ## User-defined filters (programmatic API)
 
@@ -94,21 +95,26 @@ alias so your code can use a simple name rather than the full module path:
 ```python
 from eumdac_fetch import register, PostSearchFilterFn
 
+
 def daytime_only_factory(solar_elevation_min: float = 10) -> PostSearchFilterFn:
+    # noinspection PyUnresolvedReferences
     def _filter(products: list) -> list:
         return [p for p in products if _solar_elevation(p) >= solar_elevation_min]
+
     return _filter
+
 
 register("daytime_only", daytime_only_factory)
 ```
 
-After registration you can use `type: daytime_only` in YAML **or** build it
+After registration, you can use `type: daytime_only` in YAML **or** build it
 programmatically:
 
 ```python
 from eumdac_fetch.filters import build_filter
 
 fn = build_filter("daytime_only", {"solar_elevation_min": 15})
+# noinspection PyUnresolvedReferences
 filtered = fn(products)
 ```
 
@@ -122,21 +128,24 @@ A filter factory must be a callable that:
 ```python
 from eumdac_fetch import PostSearchFilterFn
 
+
+# noinspection PyUnusedLocal
 def my_factory(**params) -> PostSearchFilterFn:
     def _filter(products: list) -> list:
         # products: list of eumdac product objects
         # Return a subset (or transformed list)
         return [p for p in products if ...]
+
     return _filter
 ```
 
 Products are standard `eumdac` product objects. Commonly used attributes:
 
-| Attribute | Type | Description |
-|---|---|---|
+| Attribute       | Type       | Description                 |
+|-----------------|------------|-----------------------------|
 | `sensing_start` | `datetime` | Start of the sensing window |
-| `sensing_end` | `datetime` | End of the sensing window |
-| `size` | `int` | Product size in KB |
+| `sensing_end`   | `datetime` | End of the sensing window   |
+| `size`          | `int`      | Product size in KB          |
 
 :::{note}
 The filter receives all products that matched the search criteria (up to `limit`).

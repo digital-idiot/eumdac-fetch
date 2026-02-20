@@ -7,10 +7,12 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 project = "eumdac-fetch"
+# noinspection PyShadowingBuiltins
 copyright = "2026, digital-idiot"
 author = "digital-idiot"
 release = "1.0.0"
 
+# noinspection SpellCheckingInspection
 extensions = [
     "myst_parser",
     "sphinx.ext.autodoc",
@@ -34,6 +36,7 @@ myst_enable_extensions = [
 myst_fence_as_directive = ["mermaid"]
 
 # Autodoc settings
+# noinspection SpellCheckingInspection
 autodoc_member_order = "bysource"
 autodoc_typehints = "description"
 autodoc_mock_imports = [

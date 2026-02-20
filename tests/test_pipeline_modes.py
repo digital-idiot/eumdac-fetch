@@ -453,19 +453,12 @@ class TestCLIDownloadFlags:
 
 class TestBuildRemoteDataset:
     def test_build_remote_dataset_all_entries(self):
-        """All links included when no entry_patterns filter is given."""
+        """All entries included when no entry_patterns filter is given."""
         from eumdac_fetch.dataset import build_remote_dataset
 
-        mock_link_a = mock.MagicMock()
-        mock_link_a.title = "file_A.nc"
-        mock_link_a.href = "https://example.com/A"
-
-        mock_link_b = mock.MagicMock()
-        mock_link_b.title = "file_B.nc"
-        mock_link_b.href = "https://example.com/B"
-
         mock_product = mock.MagicMock()
-        mock_product.links = [mock_link_a, mock_link_b]
+        mock_product.url = "https://api.eumetsat.int/data/browse/products/PROD-001?foo=bar"
+        mock_product.entries = ["file_A.nc", "file_B.nc"]
 
         mock_token = mock.MagicMock()
 
@@ -476,20 +469,42 @@ class TestBuildRemoteDataset:
         assert "file_B.nc" in dataset
         assert len(dataset) == 2
 
+    def test_build_remote_dataset_url_construction(self):
+        """Entry URLs are constructed from product.url with /entry?name= suffix."""
+        from eumdac_fetch.dataset import build_remote_dataset
+
+        mock_product = mock.MagicMock()
+        mock_product.url = "https://api.eumetsat.int/data/browse/products/PROD-001?foo=bar"
+        mock_product.entries = ["data file.nc"]  # space tests percent-encoding
+
+        mock_token = mock.MagicMock()
+
+        captured: dict = {}
+        original_init = __import__("eumdac_fetch.dataset", fromlist=["RemoteDataset"]).RemoteDataset.__init__
+
+        def _capture_init(self, entries, token_manager=None, **kw):
+            captured.update(entries)
+            original_init(self, {}, token_manager=token_manager)
+
+        with (
+            mock.patch("eumdac_fetch.dataset.TokenRefreshingHTTPFileSystem"),
+            mock.patch("eumdac_fetch.dataset.RemoteDataset.__init__", _capture_init),
+        ):
+            build_remote_dataset(mock_product, mock_token)
+
+        assert "data file.nc" in captured
+        assert (
+            captured["data file.nc"]
+            == "https://api.eumetsat.int/data/browse/products/PROD-001/entry?name=data%20file.nc"
+        )
+
     def test_build_remote_dataset_with_patterns(self):
         """Only matching entries included when entry_patterns is given."""
         from eumdac_fetch.dataset import build_remote_dataset
 
-        mock_link_nc = mock.MagicMock()
-        mock_link_nc.title = "data.nc"
-        mock_link_nc.href = "https://example.com/nc"
-
-        mock_link_xml = mock.MagicMock()
-        mock_link_xml.title = "manifest.xml"
-        mock_link_xml.href = "https://example.com/xml"
-
         mock_product = mock.MagicMock()
-        mock_product.links = [mock_link_nc, mock_link_xml]
+        mock_product.url = "https://api.eumetsat.int/data/browse/products/PROD-001"
+        mock_product.entries = ["data.nc", "manifest.xml"]
 
         mock_token = mock.MagicMock()
 
@@ -500,12 +515,13 @@ class TestBuildRemoteDataset:
         assert "manifest.xml" not in dataset
         assert len(dataset) == 1
 
-    def test_build_remote_dataset_empty_links(self):
-        """Empty links list produces an empty RemoteDataset."""
+    def test_build_remote_dataset_empty_entries(self):
+        """Empty entries list produces an empty RemoteDataset."""
         from eumdac_fetch.dataset import build_remote_dataset
 
         mock_product = mock.MagicMock()
-        mock_product.links = []
+        mock_product.url = "https://api.eumetsat.int/data/browse/products/PROD-001"
+        mock_product.entries = []
 
         mock_token = mock.MagicMock()
 

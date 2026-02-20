@@ -78,6 +78,7 @@ This shows the collection's title, description, and available search filters.
 Create a file called `job.yaml`:
 
 ```yaml
+#file: noinspection SpellCheckingInspection
 jobs:
   - name: seviri-sample
     collection: "EO:EUM:DAT:MSG:HRSEVIRI"

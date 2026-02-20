@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 DEFAULT_VALIDITY: int = 86400  # 24 hours in seconds
 
 # Named tuple so ruff format cannot strip the parentheses from except clauses.
-# ruff targeting py314 normalises `except (A, B):` → `except A, B:`, which is
+# ruff targeting py314 normalizes `except (A, B):` → `except A, B:`, which is
 # a SyntaxError on Python ≤ 3.13 and breaks the RTD build.
 _CREDENTIAL_FILE_ERRORS = (OSError, ValueError)
 

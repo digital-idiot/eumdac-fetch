@@ -19,6 +19,9 @@ jobs:
       dtend: "2024-01-31T23:59:59Z"
       sat: "MSG4"
       timeliness: "NT"
+    post_search_filter:
+      type: sample_interval
+      interval_hours: 3
     download:
       directory: ./downloads/seviri
       parallel: 4
@@ -143,6 +146,30 @@ When `entries` is set:
 - If the pattern matches zero entries for a product, that product is skipped (no error).
 
 Leave `entries` unset (or `null`) to download the full product archive.
+
+### Post-Search Filter
+
+An optional filter applied to the search results **before** they are cached and passed
+to the downloader. See {doc}`filters` for full details.
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `type` | string | — | Filter type: a built-in name (e.g. `sample_interval`) or `module:factory` |
+| *(extra keys)* | any | — | Forwarded as keyword arguments to the filter factory |
+
+Built-in types:
+
+| Type | Parameters | Description |
+|------|-----------|-------------|
+| `sample_interval` | `interval_hours: float` | Keep one product per N-hour time bucket |
+
+Example:
+
+```yaml
+post_search_filter:
+  type: sample_interval
+  interval_hours: 3
+```
 
 ### Post-Processing
 

@@ -30,6 +30,7 @@ myst_fence_as_directive = ["mermaid"]
 # Autodoc settings
 autodoc_member_order = "bysource"
 autodoc_typehints = "description"
+autodoc_mock_imports = ["eumdac"]
 
 # Napoleon settings
 napoleon_google_style = True

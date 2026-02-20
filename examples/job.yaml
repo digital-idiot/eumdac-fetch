@@ -17,6 +17,16 @@ jobs:
       # Sort options: "start,time,1" (ascending time), "publicationDate,,0"
       #               (newest published first), "publicationDate,,1" (oldest first)
     limit: 100  # max products to download (omit for all)
+    # Optional: thin the search results before downloading.
+    # Built-in: sample_interval keeps one product per time bucket.
+    # post_search_filter:
+    #   type: sample_interval
+    #   interval_hours: 3    # one product every 3 hours
+    #
+    # User-defined (importable factory):
+    # post_search_filter:
+    #   type: mypackage.filters:my_factory
+    #   my_param: value
     download:
       directory: "./downloads"
       parallel: 4

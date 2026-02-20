@@ -9,21 +9,22 @@ flowchart LR
     A[YAML Config] --> B[Config Loader]
     B --> C[Authentication]
     C --> D[Search Service]
-    D --> E[Session Manager]
-    E --> F[State DB]
-    F --> G[Async Downloader]
-    G --> H[MD5 Verification]
-    H --> I[Post-Processor]
+    D --> F[Post-Search Filter]
+    F --> E[Session Manager]
+    E --> G[State DB]
+    G --> H[Async Downloader]
+    H --> I[MD5 Verification]
+    I --> J[Post-Processor]
 
     subgraph Session
         E
-        F
+        G
     end
 
     subgraph Pipeline
-        G
         H
         I
+        J
     end
 ```
 
@@ -33,6 +34,7 @@ flowchart LR
 |--------|---------------|
 | `cli.py` | Click CLI entry point: `collections`, `info`, `search`, `download`, `run` |
 | `config.py` | YAML loading, env var interpolation, path resolution |
+| `filters.py` | Post-search filter registry, `build_filter()`, built-in `sample_interval` |
 | `models.py` | Dataclasses for all configuration and state types |
 | `auth.py` | `create_token()` and `get_token()` — lazy process-level token singleton backed by `ENV` |
 | `env.py` | Credential discovery singleton: env vars → `.env` → `~/.eumdac/credentials` (key/secret only) |

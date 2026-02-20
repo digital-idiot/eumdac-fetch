@@ -16,6 +16,7 @@ A CLI tool for bulk downloading satellite data from EUMETSAT's Data Store using 
 - **Live session detection** — sessions with recent/open-ended date ranges refresh search results automatically
 - **Stale download recovery** — products stuck in DOWNLOADING state (from killed processes) are reset on resume
 - **>10k result handling** — automatic date bisection when results exceed the API's 10,000-product limit
+- **Post-search filtering** — thin search results before download with built-in temporal subsampling (`sample_interval`) or custom `module:factory` filters
 - **Post-processing pipeline** — producer-consumer architecture with pluggable `module:function` hooks
 - **Rich terminal output** — progress bars, tables, and structured logging via Rich
 - **SQLite state tracking** — thread-safe, WAL-mode database tracks every product through the pipeline
@@ -29,21 +30,22 @@ flowchart LR
     A[YAML Config] --> B[Config Loader]
     B --> C[Authentication]
     C --> D[Search Service]
-    D --> E[Session Manager]
-    E --> F[State DB]
-    F --> G[Async Downloader]
-    G --> H[MD5 Verification]
-    H --> I[Post-Processor]
+    D --> F[Post-Search Filter]
+    F --> E[Session Manager]
+    E --> G[State DB]
+    G --> H[Async Downloader]
+    H --> I[MD5 Verification]
+    I --> J[Post-Processor]
 
     subgraph Session
         E
-        F
+        G
     end
 
     subgraph Pipeline
-        G
         H
         I
+        J
     end
 ```
 
@@ -214,6 +216,11 @@ jobs:
       retry_backoff: 2.0                  # Base backoff in seconds (exponential)
       timeout: 300                        # Per-product download timeout in seconds
 
+    # Post-search filter — applied after search, before download
+    post_search_filter:
+      type: sample_interval               # Built-in: keep one product per N-hour bucket
+      interval_hours: 3                   # Extra keys become filter params
+
     # Post-processing (used with `run` command)
     post_process:
       enabled: false                      # Enable post-processing
@@ -250,6 +257,41 @@ The pipeline uses an async producer-consumer architecture: downloads feed into a
 ```
 PENDING → DOWNLOADING → DOWNLOADED → VERIFIED → PROCESSING → PROCESSED
                                                            ↘ FAILED
+```
+
+## Post-Search Filters
+
+Add a `post_search_filter` block to a job to thin the product list **after search but before download**. The filtered set is what gets cached and downloaded — useful for high-cadence collections where you only need a sample.
+
+```yaml
+jobs:
+  - name: mtg-fci-3h
+    collection: "EO:EUM:DAT:0665"
+    filters:
+      dtstart: "2025-01-01T00:00:00Z"
+      dtend:   "2026-01-01T00:00:00Z"
+    post_search_filter:
+      type: sample_interval   # built-in: one product per time bucket
+      interval_hours: 3
+```
+
+For a user-defined filter, reference any importable factory as `module:factory`:
+
+```yaml
+post_search_filter:
+  type: mypackage.filters:daytime_only_factory
+  solar_elevation_min: 10
+```
+
+Or register a short alias from Python and use it by name:
+
+```python
+from eumdac_fetch import register, PostSearchFilterFn
+
+def daytime_factory(solar_elevation_min: float) -> PostSearchFilterFn:
+    return lambda products: [p for p in products if ...]
+
+register("daytime_only", daytime_factory)
 ```
 
 ## Development

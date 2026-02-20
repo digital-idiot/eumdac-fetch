@@ -10,6 +10,12 @@ Models
    :members:
    :undoc-members:
 
+Filters
+-------
+
+.. automodule:: eumdac_fetch.filters
+   :members:
+
 Authentication
 --------------
 

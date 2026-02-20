@@ -28,7 +28,7 @@ def build_filter(type_: str, params: dict) -> PostSearchFilterFn:
     """Build a PostSearchFilterFn from a type name and params dict.
 
     If *type_* contains ':', it is treated as ``'module:factory_callable'`` and
-    dynamically imported. Otherwise the built-in registry is consulted.
+    dynamically imported, otherwise the built-in registry is consulted.
 
     Args:
         type_: Filter type name or ``'module:factory'`` import path.

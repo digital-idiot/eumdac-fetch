@@ -14,6 +14,7 @@ resume/retry, MD5 verification, session management, and optional post-processing
    configuration
    cli
    session
+   filters
    post-processing
    state-database
 

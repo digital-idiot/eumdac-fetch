@@ -40,7 +40,25 @@ eumdac-fetch = { path = ".", editable = true, extras = ["dev"] }
 [feature.docs.pypi-dependencies]
 eumdac-fetch = { path = ".", editable = true, extras = ["docs"] }
 
+# rtd: simulates the Read the Docs build environment.
+# Python 3.12 only, no package install — mirrors what RTD does with docs/requirements.txt.
+# The src/ path is injected by docs/conf.py so autodoc can find the package.
+[feature.rtd.dependencies]
+python = "3.12.*"
+
+[feature.rtd.pypi-dependencies]
+sphinx = ">=7.0"
+furo = "*"
+myst-parser = "*"
+sphinx-copybutton = "*"
+sphinxcontrib-mermaid = "*"
+sphinx-click = "*"
+
+[feature.rtd.tasks]
+rtd-build = "sphinx-build -b html docs/ docs/_build/html-rtd"
+
 [environments]
 default = { solve-group = "default" }
 dev = { features = ["dev"], solve-group = "default" }
 docs = { features = ["docs"], solve-group = "default" }
+rtd = { features = ["rtd"], no-default-feature = true }

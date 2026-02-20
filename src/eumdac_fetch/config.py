@@ -6,6 +6,7 @@ import os
 import re
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import TYPE_CHECKING, Any
 
 import yaml
 
@@ -19,11 +20,20 @@ from eumdac_fetch.models import (
     SearchFilters,
 )
 
-JSONPrimitive = None | bool | int | float | str
-JSONValue = JSONPrimitive | "JSONList" | "JSONObject"
-JSONList = list[JSONValue]
-JSONObject = dict[str, JSONValue]
-JSONType = JSONList | JSONObject
+if TYPE_CHECKING:
+    JSONPrimitive = None | bool | int | float | str
+    JSONValue = JSONPrimitive | "JSONList" | "JSONObject"
+    JSONList = list[JSONValue]
+    JSONObject = dict[str, JSONValue]
+    JSONType = JSONList | JSONObject
+else:
+    # Evaluated at runtime: use Any so Python 3.12 doesn't choke on the
+    # forward-reference union syntax (supported natively only from 3.14).
+    JSONPrimitive = Any
+    JSONValue = Any
+    JSONList = Any
+    JSONObject = Any
+    JSONType = Any
 
 ENV_VAR_PATTERN = re.compile(r"\$\{(\w+)}")
 

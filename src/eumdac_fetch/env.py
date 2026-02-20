@@ -30,7 +30,6 @@ logger = logging.getLogger(__name__)
 
 DEFAULT_VALIDITY: int = 86400  # 24 hours in seconds
 
-
 # ---------------------------------------------------------------------------
 # Internal helpers
 # ---------------------------------------------------------------------------
@@ -102,6 +101,7 @@ def _load_credentials() -> tuple[str | None, str | None, int]:
     # 2. .env file in the current working directory
     dotenv_path = Path(".env")
     if dotenv_path.exists():
+        # noinspection PyBroadException
         try:
             env_vars = _parse_dotenv(dotenv_path)
             key = key or env_vars.get("EUMDAC_KEY") or None
@@ -113,17 +113,18 @@ def _load_credentials() -> tuple[str | None, str | None, int]:
                     validity = parsed
             if key and secret:
                 return key, secret, validity
-        except (OSError, ValueError):
+        except:
             logger.debug("Failed to parse .env file", exc_info=True)
 
     # 3. ~/.eumdac/credentials  (format: "key,secret")
     cred_file = Path.home() / ".eumdac" / "credentials"
     if cred_file.exists():
+        # noinspection PyBroadException
         try:
             parts = [p.strip() for p in cred_file.read_text().strip().split(",")]
             key = key or (parts[0] if len(parts) >= 1 else None) or None
             secret = secret or (parts[1] if len(parts) >= 2 else None) or None
-        except (OSError, ValueError):
+        except:
             logger.debug("Failed to parse ~/.eumdac/credentials", exc_info=True)
 
     return key, secret, validity

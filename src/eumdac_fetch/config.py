@@ -112,6 +112,8 @@ def _parse_filters(data: dict) -> SearchFilters:
 def _parse_download_config(data: dict, base_dir: Path) -> DownloadConfig:
     """Parse download configuration."""
     cfg = DownloadConfig()
+    if "enabled" in data:
+        cfg.enabled = bool(data["enabled"])
     if "directory" in data:
         cfg.directory = _resolve_path(data["directory"], base_dir)
     if "parallel" in data:
@@ -136,14 +138,19 @@ def _parse_post_process_config(data: dict, base_dir: Path) -> PostProcessConfig:
     cfg = PostProcessConfig()
     if "enabled" in data:
         cfg.enabled = bool(data["enabled"])
+    if "mode" in data:
+        cfg.mode = str(data["mode"])
     if "output_dir" in data:
         cfg.output_dir = _resolve_path(data["output_dir"], base_dir)
     return cfg
 
 
 def _resolve_path(path_str: str, base_dir: Path) -> Path:
-    """Resolve a path relative to base_dir if not absolute."""
-    p = Path(path_str)
+    """Resolve a path relative to base_dir if not absolute.
+
+    Leading ``~`` is expanded to the user's home directory before resolution.
+    """
+    p = Path(path_str).expanduser()
     if not p.is_absolute():
         return base_dir / p
     return p

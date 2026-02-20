@@ -7,9 +7,16 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from eumdac_fetch.dataset import RemoteDataset
 
 # Post-processor hook: receives (download_path, product_id)
 PostProcessorFn = Callable[[Path, str], None]
+
+# Remote post-processor hook: receives (RemoteDataset, product_id)
+RemotePostProcessorFn = Callable[["RemoteDataset", str], None]
 
 
 class ProductStatus(enum.Enum):
@@ -88,6 +95,7 @@ class SearchFilters:
 class DownloadConfig:
     """Download configuration for a job."""
 
+    enabled: bool = True
     directory: Path = field(default_factory=lambda: Path("./downloads"))
     parallel: int = 4
     resume: bool = True
@@ -103,6 +111,7 @@ class PostProcessConfig:
     """Post-processing configuration for a job."""
 
     enabled: bool = False
+    mode: str = "local"
     output_dir: Path = field(default_factory=lambda: Path("./output"))
 
 

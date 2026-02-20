@@ -221,8 +221,26 @@ def download(config_path: str, validity: int | None):
     default=None,
     help="Post-processor callable as 'module:function' (e.g. 'mymodule:my_func')",
 )
+@click.option(
+    "--remote-processor",
+    "remote_processor_path",
+    default=None,
+    help="Remote post-processor callable as 'module:function'. Implies no download.",
+)
+@click.option(
+    "--download/--no-download",
+    "force_download",
+    default=None,
+    help="Override download.enabled from config.",
+)
 @click.option("--validity", type=int, default=None, help="Token validity in seconds (default: from ENV or 86400)")
-def run(config_path: str, post_processor_path: str | None, validity: int | None):
+def run(
+    config_path: str,
+    post_processor_path: str | None,
+    remote_processor_path: str | None,
+    force_download: bool | None,
+    validity: int | None,
+):
     """Daemon mode: search + download + post-process pipeline."""
     import asyncio
     import importlib
@@ -250,7 +268,27 @@ def run(config_path: str, post_processor_path: str | None, validity: int | None)
             module = importlib.import_module(module_path)
             post_processor = getattr(module, func_name)
 
-        pipeline = Pipeline(token=token, config=app_config, post_processor=post_processor)
+        remote_post_processor = None
+        if remote_processor_path:
+            module_path, _, func_name = remote_processor_path.partition(":")
+            if not func_name:
+                click.echo(
+                    f"Error: --remote-processor must be 'module:function', got '{remote_processor_path}'", err=True
+                )
+                sys.exit(1)
+            module = importlib.import_module(module_path)
+            remote_post_processor = getattr(module, func_name)
+
+        if force_download is not None:
+            for job in app_config.jobs:
+                job.download.enabled = force_download
+
+        pipeline = Pipeline(
+            token=token,
+            config=app_config,
+            post_processor=post_processor,
+            remote_post_processor=remote_post_processor,
+        )
         console.print("[bold]Starting pipeline...[/]")
         asyncio.run(pipeline.run())
         console.print("[green]Pipeline complete.[/]")

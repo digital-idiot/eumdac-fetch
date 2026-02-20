@@ -55,11 +55,9 @@ def credentials():
 @pytest.fixture(scope="module")
 def eumdac_token(credentials):
     """Create a real EUMDAC access token."""
-    from eumdac_fetch.auth import create_token
-    from eumdac_fetch.models import CredentialsConfig
+    from eumdac_fetch.auth import get_token
 
-    key, secret = credentials
-    return create_token(CredentialsConfig(key=key, secret=secret))
+    return get_token()
 
 
 @pytest.fixture(scope="module")

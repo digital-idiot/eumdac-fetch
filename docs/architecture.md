@@ -12,19 +12,31 @@ flowchart LR
     D --> F[Post-Search Filter]
     F --> E[Session Manager]
     E --> G[State DB]
-    G --> H[Async Downloader]
+    G --> M{Mode}
+
+    M -- "download.enabled=true\nmode=local" --> H[Async Downloader]
     H --> I[MD5 Verification]
-    I --> J[Post-Processor]
+    I --> J[Local Post-Processor]
+
+    M -- "mode=remote" --> R[RemoteDataset Builder]
+    R --> RP[Remote Post-Processor]
+
+    M -- "download.enabled=false" --> SC[Search + Cache Only]
 
     subgraph Session
         E
         G
     end
 
-    subgraph Pipeline
+    subgraph "Local Pipeline"
         H
         I
         J
+    end
+
+    subgraph "Remote Pipeline"
+        R
+        RP
     end
 ```
 
@@ -50,29 +62,38 @@ flowchart LR
 
 ## Product Status State Machine
 
-Each product moves through a defined set of states as it progresses through the pipeline:
+Each product moves through a defined set of states as it progresses through the pipeline. The exact path depends on the pipeline mode:
 
 ```{mermaid}
 stateDiagram-v2
     [*] --> PENDING
-    PENDING --> DOWNLOADING
+    PENDING --> DOWNLOADING : local download
     DOWNLOADING --> DOWNLOADED
     DOWNLOADED --> VERIFIED
-    VERIFIED --> PROCESSING
+    VERIFIED --> PROCESSING : local post-process
     PROCESSING --> PROCESSED
     PROCESSED --> [*]
 
+    PENDING --> PROCESSING : remote mode
+    PROCESSING --> PROCESSED
+    PROCESSING --> FAILED
+
     DOWNLOADING --> FAILED
     DOWNLOADED --> FAILED : MD5 mismatch
-    PROCESSING --> FAILED
 
     DOWNLOADING --> PENDING : stale recovery
     FAILED --> PENDING : retry on re-run
 ```
 
+In **search-only** mode (`download.enabled: false`), products are registered as `PENDING` and remain there until a later run with downloading enabled.
+
+In **remote** mode (`post_process.mode: remote`), DOWNLOADING / DOWNLOADED / VERIFIED are never set — products go directly from PENDING to PROCESSING.
+
 ## Producer-Consumer Pipeline (`run` command)
 
-The `run` command uses an async producer-consumer architecture:
+The `run` command supports three pipeline modes, all using the same async producer-consumer pattern.
+
+### Local mode (download → post-process)
 
 ```{mermaid}
 flowchart TB
@@ -94,6 +115,29 @@ flowchart TB
 2. **Consumer**: A single consumer pulls products from the queue and runs the post-processor function in a thread via `asyncio.to_thread()`.
 3. **Sentinel**: When all downloads finish, a `None` sentinel is pushed to signal the consumer to stop.
 4. **Graceful shutdown**: SIGINT/SIGTERM sets a shutdown event, allowing in-progress downloads to complete.
+
+### Remote mode (stream without download)
+
+```{mermaid}
+flowchart TB
+    subgraph Producer
+        S[For each product] --> RD[Build RemoteDataset]
+        RD --> Q[Async Queue]
+    end
+
+    subgraph Consumer
+        Q --> RP[Remote Post-Processor]
+        RP --> Done[PROCESSED]
+    end
+```
+
+1. **Producer**: For each product, `build_remote_dataset()` extracts per-entry HTTPS URLs from `product.links` and wraps them in an authenticated `RemoteDataset`. The dataset is pushed to the queue without touching disk.
+2. **Consumer**: A single consumer calls `remote_post_processor(dataset, product_id)` in a thread. Products go PENDING → PROCESSING → PROCESSED/FAILED.
+3. DOWNLOADING/DOWNLOADED/VERIFIED states are never set; `reset_stale_downloads()` is a no-op.
+
+### Search-only mode
+
+When `download.enabled: false` and no remote processor is configured, the pipeline performs search + state-DB registration only. All matched products are cached in the session `search_results` table and registered as `PENDING` in the `products` table. A subsequent run with downloading enabled resumes from the cache.
 
 ## Bearer Token Refresh
 

@@ -1,0 +1,24 @@
+logging:
+  level: INFO
+  file: "./mtg-fci-hdfsi.log"
+
+jobs:
+  - name: "mtg-fci-hdfsi-2025"
+    collection: "EO:EUM:DAT:0662"  # MTG FCI L1C HDFSI
+    filters:
+      dtstart: "2025-01-01T00:00:00Z"
+      dtend: "2026-01-01T00:00:00Z"
+      sort: "start,time,1"          # ascending by sensing time
+    # Keep the first product in each 3-hour time bucket
+    post_search_filter:
+      type: sample_interval
+      interval_hours: 3
+    download:
+      enabled: false                # remote mode: no files written to disk
+      directory: "~/Downloads"
+      entries:
+        - "*.nc"                    # expose only NetCDF entries to the remote processor
+    post_process:
+      enabled: true
+      mode: remote
+      output_dir: "~/Downloads"

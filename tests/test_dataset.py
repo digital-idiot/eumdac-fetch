@@ -219,12 +219,12 @@ def _load_credentials():
 
 @pytest.fixture(scope="module")
 def live_token():
-    from eumdac_fetch.auth import create_token
+    from eumdac_fetch.auth import get_token
     from eumdac_fetch.env import ENV
 
     if not ENV.key or not ENV.secret:
         pytest.skip("No EUMDAC credentials available")
-    return create_token(key=ENV.key, secret=ENV.secret)
+    return get_token()
 
 
 @pytest.fixture(scope="module")

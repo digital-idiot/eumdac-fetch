@@ -23,6 +23,7 @@ jobs:
       type: sample_interval
       interval_hours: 3
     download:
+      enabled: true
       directory: ./downloads/seviri
       parallel: 4
       resume: true
@@ -32,6 +33,7 @@ jobs:
       timeout: 300
     post_process:
       enabled: true
+      mode: local
       output_dir: ./output/seviri
 ```
 
@@ -115,6 +117,7 @@ All filters are optional. They map directly to the eumdac `collection.search()` 
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
+| `enabled` | boolean | `true` | Set to `false` to skip downloading (search + cache only) |
 | `directory` | path | `./downloads` | Download directory (relative to config file) |
 | `parallel` | integer | `4` | Number of concurrent downloads |
 | `resume` | boolean | `true` | Resume interrupted downloads via byte-range requests |
@@ -123,6 +126,8 @@ All filters are optional. They map directly to the eumdac `collection.search()` 
 | `retry_backoff` | float | `2.0` | Base backoff in seconds (doubles each retry) |
 | `timeout` | float | `300.0` | Per-product download timeout in seconds |
 | `entries` | list of strings | `null` | Glob patterns for entry-level downloads (see below) |
+
+Setting `download.enabled: false` runs a **search-only** pass: products are found, cached in the session state database as `PENDING`, but no files are written to disk. A later run with `download.enabled: true` (or `--download` on the CLI) resumes and downloads the cached results.
 
 #### Entry-Level Downloads
 
@@ -176,7 +181,11 @@ post_search_filter:
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `enabled` | boolean | `false` | Enable post-processing in `run` mode |
+| `mode` | string | `local` | Processing mode: `local` (download first) or `remote` (stream without download) |
 | `output_dir` | path | `./output` | Output directory for processed files |
+
+- **`local`** (default): download → verify → post-process. Requires `--post-processor`.
+- **`remote`**: stream products directly from EUMETSAT without writing to disk. Requires `--remote-processor`. Overrides `download.enabled`.
 
 ## Environment Variable Interpolation
 

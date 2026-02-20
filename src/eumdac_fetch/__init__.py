@@ -8,12 +8,14 @@ from eumdac_fetch.auth import create_token, get_token
 from eumdac_fetch.dataset import RemoteDataset
 from eumdac_fetch.env import ENV
 from eumdac_fetch.filters import PostSearchFilterFn, register
+from eumdac_fetch.models import RemotePostProcessorFn
 from eumdac_fetch.remote import TokenRefreshingHTTPFileSystem
 
 __all__ = [
     "AccessToken",
     "ENV",
     "PostSearchFilterFn",
+    "RemotePostProcessorFn",
     "TokenRefreshingHTTPFileSystem",
     "RemoteDataset",
     "create_token",

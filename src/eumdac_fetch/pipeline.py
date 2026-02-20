@@ -10,9 +10,10 @@ from pathlib import Path
 
 import eumdac
 
+from eumdac_fetch.dataset import build_remote_dataset
 from eumdac_fetch.downloader import DownloadService
 from eumdac_fetch.logging_config import add_session_log_handler
-from eumdac_fetch.models import AppConfig, PostProcessorFn, ProductStatus
+from eumdac_fetch.models import AppConfig, PostProcessorFn, ProductRecord, ProductStatus, RemotePostProcessorFn
 from eumdac_fetch.search import SearchService
 from eumdac_fetch.session import Session
 from eumdac_fetch.state import StateDB
@@ -30,10 +31,12 @@ class Pipeline:
         token: eumdac.AccessToken,
         config: AppConfig,
         post_processor: PostProcessorFn | None = None,
+        remote_post_processor: RemotePostProcessorFn | None = None,
     ):
         self.token = token
         self.config = config
         self.post_processor = post_processor
+        self.remote_post_processor = remote_post_processor
         self._shutdown = asyncio.Event()
 
     async def run(self) -> None:
@@ -90,20 +93,34 @@ class Pipeline:
                 if not products:
                     continue
 
-                # Use session download dir
-                session.download_dir.mkdir(parents=True, exist_ok=True)
-
-                if job.post_process.enabled and self.post_processor:
+                is_remote = job.post_process.mode == "remote" and self.remote_post_processor is not None
+                if is_remote:
+                    await self._run_remote(products, job, state_db, session)
+                elif job.post_process.enabled and self.post_processor and job.download.enabled:
+                    session.download_dir.mkdir(parents=True, exist_ok=True)
                     await self._run_with_post_processing(products, job, state_db, session)
-                elif job.post_process.enabled and not self.post_processor:
-                    logger.warning(
-                        "Post-processing enabled for job '%s' but no post_processor callable provided; "
-                        "downloading only",
-                        job.name,
-                    )
+                elif job.download.enabled:
+                    session.download_dir.mkdir(parents=True, exist_ok=True)
+                    if job.post_process.enabled and not self.post_processor:
+                        logger.warning(
+                            "Post-processing enabled for job '%s' but no post_processor callable provided; "
+                            "downloading only",
+                            job.name,
+                        )
                     await self._run_download_only(products, job, state_db, session)
                 else:
-                    await self._run_download_only(products, job, state_db, session)
+                    logger.info("Search-only mode: download disabled — results cached")
+                    for product in products:
+                        product_id = str(product)
+                        if state_db.get(product_id, job.name) is None:
+                            state_db.upsert(
+                                ProductRecord(
+                                    product_id=product_id,
+                                    job_name=job.name,
+                                    collection=job.collection,
+                                    status=ProductStatus.PENDING,
+                                )
+                            )
             finally:
                 state_db.close()
                 logging.getLogger("eumdac_fetch").removeHandler(log_handler)
@@ -257,6 +274,85 @@ class Pipeline:
                     job_name,
                     ProductStatus.FAILED,
                     error_message=f"Post-processing failed: {e}",
+                )
+
+            process_queue.task_done()
+
+    async def _run_remote(self, products: list, job, state_db: StateDB, _session: Session) -> None:
+        """Run remote post-processing pipeline without downloading files."""
+        process_queue: asyncio.Queue = asyncio.Queue()
+
+        producer = asyncio.create_task(
+            self._remote_producer(products, job, state_db, process_queue)
+        )
+        consumer = asyncio.create_task(
+            self._remote_consumer(state_db, job.name, process_queue)
+        )
+
+        await asyncio.gather(producer, consumer)
+
+    async def _remote_producer(
+        self,
+        products: list,
+        job,
+        state_db: StateDB,
+        process_queue: asyncio.Queue,
+    ) -> None:
+        """Build RemoteDatasets and push them to the processing queue."""
+        try:
+            for product in products:
+                if self._shutdown.is_set():
+                    break
+                product_id = str(product)
+
+                existing = state_db.get(product_id, job.name)
+                if existing and existing.status in (ProductStatus.PROCESSED, ProductStatus.VERIFIED):
+                    continue
+
+                if existing is None:
+                    state_db.upsert(
+                        ProductRecord(
+                            product_id=product_id,
+                            job_name=job.name,
+                            collection=job.collection,
+                            status=ProductStatus.PENDING,
+                        )
+                    )
+
+                dataset = build_remote_dataset(product, self.token, job.download.entries)
+                await process_queue.put((dataset, product_id))
+        finally:
+            await process_queue.put(SENTINEL)
+
+    async def _remote_consumer(
+        self,
+        state_db: StateDB,
+        job_name: str,
+        process_queue: asyncio.Queue,
+    ) -> None:
+        """Consume RemoteDatasets and call remote_post_processor."""
+        while True:
+            if self._shutdown.is_set():
+                break
+
+            item = await process_queue.get()
+            if item is SENTINEL:
+                break
+
+            dataset, product_id = item
+            logger.info("Remote processing product: %s", product_id)
+            state_db.update_status(product_id, job_name, ProductStatus.PROCESSING)
+
+            try:
+                await asyncio.to_thread(self.remote_post_processor, dataset, product_id)
+                state_db.update_status(product_id, job_name, ProductStatus.PROCESSED)
+            except Exception as e:
+                logger.error("Remote processing failed for %s: %s", product_id, e)
+                state_db.update_status(
+                    product_id,
+                    job_name,
+                    ProductStatus.FAILED,
+                    error_message=f"Remote processing failed: {e}",
                 )
 
             process_queue.task_done()

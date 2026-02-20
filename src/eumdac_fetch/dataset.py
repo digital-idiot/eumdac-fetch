@@ -29,6 +29,7 @@ Typical usage::
 
 from __future__ import annotations
 
+import fnmatch
 from collections.abc import Iterator
 
 from eumdac_fetch.auth import get_token
@@ -180,3 +181,23 @@ class RemoteDataset:
 
     def __repr__(self) -> str:
         return f"RemoteDataset({self.entries!r})"
+
+
+# ---------------------------------------------------------------------------
+# Factory
+# ---------------------------------------------------------------------------
+
+
+def build_remote_dataset(product, token, entry_patterns: list[str] | None = None) -> RemoteDataset:
+    """Build a RemoteDataset from a eumdac product object.
+
+    Extracts per-entry URLs from product.links.
+    If entry_patterns is given, only matching entry names are included.
+    """
+    entries: dict[str, str] = {}
+    for link in product.links:
+        name = link.title
+        url = link.href
+        if entry_patterns is None or any(fnmatch.fnmatch(name, p) for p in entry_patterns):
+            entries[name] = url
+    return RemoteDataset(entries, token_manager=token)

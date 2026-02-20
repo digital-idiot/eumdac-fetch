@@ -282,12 +282,8 @@ class Pipeline:
         """Run remote post-processing pipeline without downloading files."""
         process_queue: asyncio.Queue = asyncio.Queue()
 
-        producer = asyncio.create_task(
-            self._remote_producer(products, job, state_db, process_queue)
-        )
-        consumer = asyncio.create_task(
-            self._remote_consumer(state_db, job.name, process_queue)
-        )
+        producer = asyncio.create_task(self._remote_producer(products, job, state_db, process_queue))
+        consumer = asyncio.create_task(self._remote_consumer(state_db, job.name, process_queue))
 
         await asyncio.gather(producer, consumer)
 

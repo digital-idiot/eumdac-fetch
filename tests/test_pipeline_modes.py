@@ -366,9 +366,7 @@ class TestRemoteModeResume:
 class TestCLIDownloadFlags:
     @mock.patch("eumdac_fetch.auth.get_token")
     @mock.patch("eumdac_fetch.pipeline.Pipeline")
-    def test_no_download_cli_flag_sets_enabled_false(
-        self, mock_pipeline_cls, mock_get_token, runner, tmp_config
-    ):
+    def test_no_download_cli_flag_sets_enabled_false(self, mock_pipeline_cls, mock_get_token, runner, tmp_config):
         """--no-download overrides download.enabled to False on all jobs."""
         mock_pipeline = mock.MagicMock()
         mock_pipeline_cls.return_value = mock_pipeline
@@ -384,9 +382,7 @@ class TestCLIDownloadFlags:
 
     @mock.patch("eumdac_fetch.auth.get_token")
     @mock.patch("eumdac_fetch.pipeline.Pipeline")
-    def test_download_flag_overrides_config(
-        self, mock_pipeline_cls, mock_get_token, runner, tmp_config_no_download
-    ):
+    def test_download_flag_overrides_config(self, mock_pipeline_cls, mock_get_token, runner, tmp_config_no_download):
         """--download overrides download.enabled=false in YAML."""
         mock_pipeline = mock.MagicMock()
         mock_pipeline_cls.return_value = mock_pipeline
@@ -402,9 +398,7 @@ class TestCLIDownloadFlags:
 
     @mock.patch("eumdac_fetch.auth.get_token")
     @mock.patch("eumdac_fetch.pipeline.Pipeline")
-    def test_no_flag_preserves_config_value(
-        self, mock_pipeline_cls, mock_get_token, runner, tmp_config_no_download
-    ):
+    def test_no_flag_preserves_config_value(self, mock_pipeline_cls, mock_get_token, runner, tmp_config_no_download):
         """Without --download/--no-download, config value is preserved."""
         mock_pipeline = mock.MagicMock()
         mock_pipeline_cls.return_value = mock_pipeline
@@ -421,9 +415,7 @@ class TestCLIDownloadFlags:
 
     @mock.patch("eumdac_fetch.auth.get_token")
     @mock.patch("eumdac_fetch.pipeline.Pipeline")
-    def test_remote_processor_invalid_format(
-        self, mock_pipeline_cls, mock_get_token, runner, tmp_config
-    ):
+    def test_remote_processor_invalid_format(self, mock_pipeline_cls, mock_get_token, runner, tmp_config):
         """--remote-processor without ':' should fail with an error message."""
         result = runner.invoke(cli, ["run", "-c", tmp_config, "--remote-processor", "no_colon"])
         assert result.exit_code == 1
@@ -431,9 +423,7 @@ class TestCLIDownloadFlags:
 
     @mock.patch("eumdac_fetch.auth.get_token")
     @mock.patch("eumdac_fetch.pipeline.Pipeline")
-    def test_remote_processor_loaded_and_passed(
-        self, mock_pipeline_cls, mock_get_token, runner, tmp_config, tmp_path
-    ):
+    def test_remote_processor_loaded_and_passed(self, mock_pipeline_cls, mock_get_token, runner, tmp_config, tmp_path):
         """--remote-processor loads callable and passes it to Pipeline."""
         mod_file = tmp_path / "myremote.py"
         mod_file.write_text("def process(dataset, pid): pass\n")

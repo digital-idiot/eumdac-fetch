@@ -15,6 +15,7 @@ from eumdac_fetch.models import (
     JobConfig,
     LoggingConfig,
     PostProcessConfig,
+    PostSearchFilterConfig,
     SearchFilters,
 )
 
@@ -156,6 +157,11 @@ def _parse_job(data: dict, base_dir: Path) -> JobConfig:
 
     if "post_process" in data:
         job.post_process = _parse_post_process_config(data["post_process"], base_dir)
+
+    if "post_search_filter" in data:
+        psf = dict(data["post_search_filter"])
+        filter_type = psf.pop("type")
+        job.post_search_filter = PostSearchFilterConfig(type=filter_type, params=psf)
 
     if "limit" in data:
         job.limit = int(data["limit"])

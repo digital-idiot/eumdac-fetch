@@ -143,6 +143,13 @@ class Pipeline:
         products = search_service.iter_products(job.collection, job.filters, limit=job.limit)
         logger.info("Found %d products", len(products))
 
+        if job.post_search_filter:
+            from eumdac_fetch.filters import build_filter
+
+            fn = build_filter(job.post_search_filter.type, job.post_search_filter.params)
+            products = fn(products)
+            logger.info("After post-search filter (%s): %d products", job.post_search_filter.type, len(products))
+
         if products:
             state_db.cache_search_results(products, job.collection)
 

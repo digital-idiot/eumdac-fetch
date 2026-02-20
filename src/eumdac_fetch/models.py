@@ -107,6 +107,14 @@ class PostProcessConfig:
 
 
 @dataclass
+class PostSearchFilterConfig:
+    """Configuration for a post-search filter."""
+
+    type: str
+    params: dict = field(default_factory=dict)
+
+
+@dataclass
 class JobConfig:
     """Configuration for a single download job."""
 
@@ -115,6 +123,7 @@ class JobConfig:
     filters: SearchFilters = field(default_factory=SearchFilters)
     download: DownloadConfig = field(default_factory=DownloadConfig)
     post_process: PostProcessConfig = field(default_factory=PostProcessConfig)
+    post_search_filter: PostSearchFilterConfig | None = None
     limit: int | None = None
 
 

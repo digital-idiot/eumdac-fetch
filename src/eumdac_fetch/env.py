@@ -30,6 +30,11 @@ logger = logging.getLogger(__name__)
 
 DEFAULT_VALIDITY: int = 86400  # 24 hours in seconds
 
+# Named tuple so ruff format cannot strip the parentheses from except clauses.
+# ruff targeting py314 normalises `except (A, B):` → `except A, B:`, which is
+# a SyntaxError on Python ≤ 3.13 and breaks the RTD build.
+_CREDENTIAL_FILE_ERRORS = (OSError, ValueError)
+
 # ---------------------------------------------------------------------------
 # Internal helpers
 # ---------------------------------------------------------------------------
@@ -113,7 +118,7 @@ def _load_credentials() -> tuple[str | None, str | None, int]:
                     validity = parsed
             if key and secret:
                 return key, secret, validity
-        except:
+        except _CREDENTIAL_FILE_ERRORS:
             logger.debug("Failed to parse .env file", exc_info=True)
 
     # 3. ~/.eumdac/credentials  (format: "key,secret")
@@ -124,7 +129,7 @@ def _load_credentials() -> tuple[str | None, str | None, int]:
             parts = [p.strip() for p in cred_file.read_text().strip().split(",")]
             key = key or (parts[0] if len(parts) >= 1 else None) or None
             secret = secret or (parts[1] if len(parts) >= 2 else None) or None
-        except:
+        except _CREDENTIAL_FILE_ERRORS:
             logger.debug("Failed to parse ~/.eumdac/credentials", exc_info=True)
 
     return key, secret, validity

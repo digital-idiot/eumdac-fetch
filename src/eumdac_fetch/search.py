@@ -191,6 +191,21 @@ class SearchService:
             filters_used=kwargs,
         )
 
+    def get_product(self, collection_id: str, product_id: str):
+        """Reconstruct a single Product object from stored IDs without searching.
+
+        Uses ``DataStore.get_product`` which constructs the object with no API
+        calls — all attributes remain lazy until first accessed.
+
+        Args:
+            collection_id: The collection identifier (e.g. ``"EO:EUM:DAT:0665"``).
+            product_id: The product identifier as stored in the state DB.
+
+        Returns:
+            A fully functional ``eumdac.Product`` instance.
+        """
+        return self.datastore.get_product(collection_id, product_id)
+
     def iter_products(self, collection_id: str, filters: SearchFilters, limit: int | None = None) -> list:
         """Iterate matching products, handling >10k results via date bisection.
 

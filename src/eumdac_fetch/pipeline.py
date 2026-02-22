@@ -141,19 +141,12 @@ class Pipeline:
         """Search for products, using cached results for non-live resumed sessions."""
         if not session.is_new and not session.is_live and state_db.has_cached_search():
             logger.info("Using cached search results for job: %s", job.name)
-            # For resumed non-live sessions, we still need eumdac product objects for download.
-            # The products table tracks which ones still need downloading.
             resumable = state_db.get_resumable(job.name)
             if not resumable:
                 logger.info("All products already processed for job: %s", job.name)
                 return []
-            # Re-search to get eumdac product objects, but we know the scope from cache
-            logger.info("Re-fetching %d resumable products from API", len(resumable))
-            products = search_service.iter_products(job.collection, job.filters, limit=job.limit)
-            # Filter to only resumable product IDs
-            resumable_ids = {r.product_id for r in resumable}
-            products = [p for p in products if str(p) in resumable_ids]
-            logger.info("Found %d resumable products", len(products))
+            logger.info("Reconstructing %d product objects from cache (no re-search)", len(resumable))
+            products = [search_service.get_product(r.collection, r.product_id) for r in resumable]
             return products
 
         logger.info("Searching for products in %s", job.collection)

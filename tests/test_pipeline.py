@@ -345,7 +345,7 @@ class TestPipeline:
             mock_state.reset_stale_downloads.assert_not_called()
 
     def test_search_uses_cache_for_resumed_non_live(self, mock_token, basic_config, mock_session):
-        """Resumed non-live session with cached search uses cache."""
+        """Resumed non-live session reconstructs product objects from cache without re-searching."""
         mock_session.is_new = False
         mock_session.is_live = False
         pipeline = Pipeline(token=mock_token, config=basic_config)
@@ -369,7 +369,7 @@ class TestPipeline:
             mock.patch("eumdac_fetch.pipeline.DownloadService") as mock_dl_cls,
         ):
             mock_search = mock_search_cls.return_value
-            mock_search.iter_products.return_value = [mock_product]
+            mock_search.get_product.return_value = mock_product
             mock_log.return_value = mock.MagicMock()
             mock_state = mock_state_cls.return_value
             mock_state.has_cached_search.return_value = True
@@ -380,10 +380,11 @@ class TestPipeline:
 
             asyncio.run(pipeline.run())
 
-            # Should not cache again (using existing cache)
+            # Should not re-search or cache again
+            mock_search.iter_products.assert_not_called()
             mock_state.cache_search_results.assert_not_called()
-            # Should still call iter_products to get eumdac objects
-            mock_search.iter_products.assert_called_once()
+            # Should reconstruct from stored collection + product_id
+            mock_search.get_product.assert_called_once_with("COL1", "P1")
 
     def test_search_cache_all_processed(self, mock_token, basic_config, mock_session):
         """Resumed session with cache but no resumable products skips download."""

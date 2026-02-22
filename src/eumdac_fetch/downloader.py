@@ -228,9 +228,14 @@ class DownloadService:
             # Use entry filename for display and on-disk filename; fall back to product ID
             filename = entry_name.split("/")[-1] if entry_name else db_key
             total_bytes = int(record.size_kb * 1000)
+            # Seed the progress bar from already-downloaded bytes so a resumed
+            # download starts visually at the correct position, not at zero.
+            download_path = self.download_dir / filename
+            initial_bytes = download_path.stat().st_size if self.resume and download_path.exists() else 0
             task_id = progress.add_task(
                 db_key,
                 total=total_bytes or None,
+                completed=initial_bytes,
                 product_id=filename[:40],
             )
 
